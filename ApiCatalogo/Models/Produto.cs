@@ -1,4 +1,5 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using System.Collections.ObjectModel;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ApiCatalogo.Models
@@ -6,6 +7,7 @@ namespace ApiCatalogo.Models
     [Table("Produtos")]
     public class Produto
     {
+
         [Key]
         public int Id { get; set; }
 
