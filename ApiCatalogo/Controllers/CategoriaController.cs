@@ -36,7 +36,7 @@ namespace ApiCatalogo.Controllers
             {
                 var searchProduto = _context.Categorias.Find(id);
 
-                if (searchProduto == null)
+                if (searchProduto is null)
                 {
                     return NotFound("Produto não encontado");
                 }
