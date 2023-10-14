@@ -19,71 +19,102 @@ namespace ApiCatalogo.Controllers
         [HttpGet]
         public ActionResult<IEnumerable<Produto>> GetAll ()
         {
-            var produtos = _context.Produtos.ToList();
-            if (produtos is null)
+            try
             {
-               return NotFound("Produto não encontrado");
-            }
+                var produtos = _context.Produtos.ToList();
+                if (produtos is null)
+                {
+                    return NotFound("Produto não encontrado");
+                }
 
-            return produtos;
+                return produtos;
+            } catch (Exception ex) 
+            { 
+                return StatusCode(500, ex.Message); 
+            }
         }
 
         [HttpGet("/{id}", Name="ObterProduto")]
         public ActionResult<Produto> findById (int id)
         {
-            Produto? produto = _context.Produtos.FirstOrDefault(p => p.Id == id);
-
-            if (produto is null)
+            try
             {
-                return NotFound("Produto não encontrado");
-            }
+                Produto? produto = _context.Produtos.FirstOrDefault(p => p.Id == id);
 
-            return produto;
+                if (produto is null)
+                {
+                    return NotFound("Produto não encontrado");
+                }
+
+                return produto;
+            } catch (Exception ex)
+            {
+                return NotFound(ex.Message);
+            }
         }
 
         [HttpPost]
         public ActionResult<Produto> create (Produto produto)
         {
-            _context.Produtos.Add(produto);
-            _context.SaveChanges();
+            try
+            {
+                _context.Produtos.Add(produto);
+                _context.SaveChanges();
 
-            return new CreatedAtRouteResult("ObterProduto", new { id = produto.Id });
+                return new CreatedAtRouteResult("ObterProduto", new { id = produto.Id });
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
         public ActionResult<Produto> Put(int id, [FromBody] Produto produto)
         {
-            if (produto == null || id != produto.Id)
+            try
             {
-                return BadRequest("Dados inválidos");
-            }
+                if (produto == null || id != produto.Id)
+                {
+                    return BadRequest("Dados inválidos");
+                }
 
-            var existingProduto = _context.Produtos.Find(id);
+                var existingProduto = _context.Produtos.Find(id);
 
-            if (existingProduto == null)
+                if (existingProduto == null)
+                {
+                    return NotFound("Produto não encontrado");
+                }
+
+                _context.Entry(existingProduto).CurrentValues.SetValues(produto);
+                _context.SaveChanges();
+
+                return Ok(existingProduto);
+            } catch (Exception ex)
             {
-                return NotFound("Produto não encontrado");
+                return StatusCode(500, ex.Message);
             }
-
-            _context.Entry(existingProduto).CurrentValues.SetValues(produto);
-            _context.SaveChanges();
-
-            return Ok(existingProduto);
         }
 
         [HttpDelete("/{id}")]
         public ActionResult<Produto> Delete(int id)
         {
-            var produto = _context.Produtos.FirstOrDefault(produto => produto.Id == id);  
+            try
+            {
+                var produto = _context.Produtos.FirstOrDefault(produto => produto.Id == id);
 
-            if (produto is null) {
-                return NotFound("Produto não localizado");
+                if (produto is null)
+                {
+                    return NotFound("Produto não localizado");
+                }
+
+                _context.Produtos.Remove(produto);
+                _context.SaveChanges();
+
+                return Ok(produto);
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
-
-            _context.Produtos.Remove(produto);
-            _context.SaveChanges();
-
-            return Ok(produto);
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using ApiCatalogo.Context;
 using ApiCatalogo.Models;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace ApiCatalogo.Controllers
 {
@@ -18,71 +19,105 @@ namespace ApiCatalogo.Controllers
         [HttpGet]
         public IEnumerable<Categoria> Get ()
         {
-            return _context.Categorias.ToList();
+            try
+            {
+                return _context.Categorias.AsNoTracking().ToList();
+            }
+            catch (Exception ex)
+            {
+                return (IEnumerable<Categoria>)StatusCode(500, ex.Message);
+            }
         }
 
         [HttpGet("{id}", Name = "GetCategoria")]
         public ActionResult<Categoria> findById (int id)
         {
-            var searchProduto = _context.Categorias.Find(id);
-
-            if (searchProduto == null)
+            try
             {
-                return NotFound("Produto não encontado");
-            }
+                var searchProduto = _context.Categorias.Find(id);
 
-            return Ok(searchProduto);
+                if (searchProduto == null)
+                {
+                    return NotFound("Produto não encontado");
+                }
+
+                return Ok(searchProduto);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPost]
         public ActionResult<Categoria> Post([FromBody] Categoria categoria)
         {
-            if (categoria is null)
+            try
             {
-                return BadRequest();
+                if (categoria is null)
+                {
+                    return BadRequest();
+                }
+
+                _context.Categorias.Add(categoria);
+                _context.SaveChanges();
+
+                return CreatedAtRoute("GetCategoria", new { id = categoria.Id }, categoria);
             }
-
-            _context.Categorias.Add(categoria);
-            _context.SaveChanges();
-
-            return CreatedAtRoute("GetCategoria", new { id = categoria.Id }, categoria);
+            catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
+            }
         }
 
         [HttpPut("{id}")]
         public ActionResult<Categoria> Put(int id, [FromBody] Categoria categoria)
         {
-            if (categoria == null || id != categoria.Id)
+            try
             {
-                return NoContent();
+                if (categoria == null || id != categoria.Id)
+                {
+                    return NoContent();
+                }
+
+                var existeProduto = _context.Categorias.Find(id);
+
+                if (existeProduto is null)
+                {
+                    return BadRequest("Categoria não localizada");
+                }
+
+                _context.Entry(existeProduto).CurrentValues.SetValues(categoria);
+                _context.SaveChanges();
+
+                return Ok(existeProduto);
             }
-
-            var existeProduto = _context.Categorias.Find(id);
-
-            if (existeProduto is null)
+            catch (Exception ex) 
             {
-                return BadRequest("Categoria não localizada");
+                return StatusCode(500, ex.Message);
             }
-
-            _context.Entry(existeProduto).CurrentValues.SetValues(categoria);
-            _context.SaveChanges();
-
-            return Ok(existeProduto);
         }
 
         [HttpDelete("{id}")]
         public ActionResult<Categoria> Delete(int id)
         {
-            var searchCategoria = _context.Categorias.Find(id);
-
-            if (searchCategoria is null)
+            try
             {
-                return NotFound("Produto não localizado");
+                var searchCategoria = _context.Categorias.Find(id);
+
+                if (searchCategoria is null)
+                {
+                    return NotFound("Produto não localizado");
+                }
+
+                _context.Remove(searchCategoria);
+                _context.SaveChanges();
+
+                return Ok("Deletado com sucesso");
+            } catch (Exception ex)
+            {
+                return StatusCode(500, ex.Message);
             }
-
-            _context.Remove(searchCategoria);
-            _context.SaveChanges();
-
-            return Ok("Deletado com sucesso");
         }
     }
 }
